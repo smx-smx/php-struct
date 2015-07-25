@@ -2,14 +2,24 @@
 /*
 	Copyright (C) 2015 Smx
 */
-define("int8_t", 'c');
-define("uint8_t", 'C');
-define("int16_t", 's');
+define("int8_t"  , 'c');
+define("uint8_t" , 'C');
+define("int16_t" , 's');
 define("uint16_t", 'S');
-define("int32_t", 'l');
+define("int32_t" , 'l');
 define("uint32_t", 'L');
-define("int64_t", 'q');
+define("int64_t" , 'q');
 define("uint64_t", 'Q');
+
+define("uint16_le_t", "v");
+define("uint16_be_t", "n");
+define("uint32_le_t", "V");
+define("uint32_be_t", "N");
+define("uint64_le_t", "P");
+define("uint64_be_t", "J");
+
+define("float_t", "f");
+define("double_t", "d");
 
 /* Returns the data as int type */
 define("VAR_NUMERIC", 1 << 0);
@@ -28,10 +38,10 @@ define("ENDIAN_BIG", 1 << 6);
 class StructMember {
 	const ENDIAN_LITTLE = 4321;
 	const ENDIAN_BIG = 1234;
-	public function __construct($name, $type, $count=null, $flags=null){
+	public function __construct($name, $type, $count=1, $flags=null){
 		$this->name = $name;
 		$this->type = $type;
-		$this->count = (is_null($count)) ? 1 : $count;
+		$this->count = $count;
 		$this->decodeAs = null;
 		$this->data = "";
 		if(!$this->isSubStruct()){
@@ -53,24 +63,16 @@ class StructMember {
 		}
 	}
 	public function isByte(){
-		return
-			$this->getType() == int8_t ||
-			$this->getType() == uint8_t;
+		return $this->sizeof() == 1;
 	}
 	public function isShort(){
-		return
-			$this->getType() == int16_t ||
-			$this->getType() == uint16_t;
+		return $this->sizeof() == 2;
 	}
 	public function isLong(){
-		return
-			$this->getType() == int32_t ||
-			$this->getType() == uint32_t;
+		return $this->sizeof() == 4;
 	}
 	public function isLongLong(){
-		return
-			$this->getType() == int64_t ||
-			$this->getType() == uint64_t;
+		return $this->sizeof() == 8;
 	}
 	public function isSubStruct(){
 		return
@@ -82,31 +84,7 @@ class StructMember {
 		if($this->isSubStruct()){
 			return $this->getType()->getSize();
 		}
-		switch($this->getType()){
-			case int8_t:
-			case uint8_t:
-				$sz = 1;
-				break;
-			case int16_t:
-			case uint16_t:
-			case "n":
-			case "v":
-				$sz = 2;
-				break;
-			case int32_t:
-			case uint32_t:
-			case "N":
-			case "V":
-				$sz = 4;
-				break;
-			case int64_t:
-			case uint64_t:
-			case "J":
-			case "P":
-				$sz = 8;
-				break;
-		}
-		return $sz;
+		return strlen(pack($this->getType(), "123"));
 	}
 	public function getSingleSize(){ return $this->sizeof(); }
 	public function getSize(){ return $this->sizeof() * $this->getCount(); }
@@ -181,10 +159,10 @@ class StructMember {
 			if(count($data) == 1){ //we only have 1 element
 				if(($this->decodeAs & VAR_NUMERIC) == VAR_NUMERIC)
 					return intval($data[0]);
-				elseif(($this->decodeAs & VAR_DOUBLE) == VAR_DOUBLE)
-					return unpack("d", $data[0]);
 				elseif(($this->decodeAs & VAR_FLOAT) == VAR_FLOAT)
-					return unpack("f", $data[0]);
+					return unpack(float_t, $data[0]);
+				elseif(($this->decodeAs & VAR_DOUBLE) == VAR_DOUBLE)
+					return unpack(double_t, $data[0]);
 				else
 					return $data[0];
 			}
@@ -201,29 +179,32 @@ class StructMember {
 			return $value;
 		if($this->isShort()){
 			if($this->getEndianess() == self::ENDIAN_LITTLE)
-				return pack("n", $value);
+				return pack(uint16_be_t, $value);
 			else
-				return pack("v", $value);
+				return pack(uint16_le_t, $value);
 		}
 		if($this->isLong()){
 			if($this->getEndianess() == self::ENDIAN_LITTLE)
-				return pack("N", $value);
+				return pack(uint32_be_t, $value);
 			else
-				return pack("V", $value);
+				return pack(uint32_le_t, $value);
 		}
 		if($this->isLongLong()){
 			if($this->getEndianess() == self::ENDIAN_LITTLE)
-				return pack("J", $value);
+				return pack(uint64_be_t, $value);
 			else
-				return pack("P", $value);
+				return pack(uint64_le_t, $value);
 		}
 	}
 	public static function typeValid($type){
 		return
 			$type == int8_t || $type == uint8_t ||
 			$type == int16_t || $type == uint16_t ||
+			$type == uint16_le_t || $type = uint16_be_t ||
 			$type == int32_t || $type == uint32_t ||
-			$type = int64_t || $type = uint64_t;
+			$type == uint32_be_t || $type == uint32_le_t ||
+			$type = int64_t || $type = uint64_t ||
+			$type == uint64_le_t || $type == uint64_be_t;
 	}
 	/* Swaps endianess for a pack specifier */
 	public static function reverseType($type){
@@ -235,15 +216,15 @@ class StructMember {
 				break;
 			case int16_t:
 			case uint16_t:
-				return ($mach == self::ENDIAN_LITTLE) ? "n" : "v";
+				return ($mach == self::ENDIAN_LITTLE) ? uint16_be_t : uint16_le_t;
 				break;
 			case int32_t:
 			case uint32_t:
-				return ($mach == self::ENDIAN_LITTLE) ? "N" : "V";
+				return ($mach == self::ENDIAN_LITTLE) ? uint32_be_t : uint32_le_t;
 				break;
 			case int64_t:
 			case uint64_t:
-				return ($mach == self::ENDIAN_LITTLE) ? "J" : "P";
+				return ($mach == self::ENDIAN_LITTLE) ? uint64_be_t : uint64_le_t;
 				break;
 			default:
 				return $type;
@@ -253,7 +234,7 @@ class StructMember {
 	public static function getMachineEndianess(){
 		$val = 1234;
 		$test = pack(uint32_t, $val);
-		$big = array_values(unpack("N", $test))[0];
+		$big = array_values(unpack(uint32_be_t, $test))[0];
 		return ($val == $big) ? self::ENDIAN_BIG : self::ENDIAN_LITTLE;
 	}
 }
