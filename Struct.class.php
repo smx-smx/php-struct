@@ -375,6 +375,11 @@ class Struct {
 		/* Return the remaining data */
 		return $data;
 	}
+
+	public static function isStructArray($arr){
+		return is_array($arr) && count($arr) > 0 && $arr[0] instanceof Struct;
+	}
+
 	public static function printStruct($struct){
 		foreach($struct->members as $name => $memb){
 			$value = $memb->getValue();
