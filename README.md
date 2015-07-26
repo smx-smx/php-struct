@@ -26,7 +26,8 @@ $string_t = new Struct(
 );
 ```
 The use of FLAG_STRSZ makes a structure size unpredictable.
-<br><br>
+
+
 
 You can also use nested structures:
 ```php
@@ -75,37 +76,41 @@ function printStruct($struct){
 	foreach($struct->members as $name => $memb){
 		$value = $memb->getValue();
 		if(is_array($value)){
-			if(count($value) > 0 && $value[0] instanceof Struct){
+			if(Struct::isStructArray($value)){
 				foreach($value as $subStruct){
 					printStruct($subStruct);
 				}
 			} else {
+				//print array of bytes/elements
 				printf("%s\n", $name);
 				var_dump($value);
 			}
 		} else {
+			//print element/value
 			printf("%s => 0x%x\n", $name, $value);
 		}
 	}
 }
 ```
 
-Getting the binary data of a member
+Getting the binary data of a member/struct
 ```php
-$binaryData = $member->data;
+$binaryData = $member->getData();
 ```
 
-Setting the binary data of a member
+Setting the binary data of a member (use this to set strings!)
 ```php
 $member->setData($binData);
 ```
 
-Getting the decoded value of a member (according to its type)
+Getting the decoded value of a member (according to its type).
 ```php
 $value = $member->getValue();
 ```
 
-Setting the value of a member (will get encoded according to its type)
+Setting the value of a member (will get encoded according to its type).
+
+<b>NOTE</b>: for strings use setData, or you'll need to pass a char array to this function
 ```php
-$member->setValue($numberORString);
+$member->setValue($value);
 ```
