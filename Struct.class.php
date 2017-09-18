@@ -101,10 +101,8 @@ class StructMember {
 		if($idx > $this->getCount()-1){
 			return false;
 		}
-
-		$part = unpack($this->getType(),
-				substr($this->data, $idx * $this->sizeof())
-			);
+		
+		$part = unpack($this->getType(), substr($this->data, $idx * $this->sizeof()));
 		return (is_null($glue)) ? $part : implode($glue, $part);
 	}
 	
@@ -148,8 +146,27 @@ class StructMember {
 
 		if($this->decodeAs == VAR_STRING){
 			$data = "";
-			for($i=0; $i<$this->getCount(); $i++)
-				$data .= chr($this->getElement($i, ""));
+			for($i=0; $i<$this->getCount(); $i++){
+				$type = $this->getType();
+				// Get neutral type
+				switch($type){
+					case uint16_le_t:
+					case uint16_be_t:
+						$type = int16_t;
+						break;
+					case uint32_be_t:
+					case uint32_le_t:
+						$type = uint32_t;
+						break;
+					case uint64_be_t:
+					case uint64_le_t:
+						$type = uint64_t;
+						break;
+				}
+				
+				$value = pack($type, $this->getElement($i, ""));
+				$data .= $value;
+			}
 			return $data;
 		} else {
 			$data = array();
@@ -315,6 +332,13 @@ class Struct {
 		foreach($this->members as $name => &$member){
 			$this->members[$name] = clone($member);
 		}
+	}
+	
+	public function getValue($name){
+		$val = $this->members[$name]->getValue();
+		if(Struct::isStructArray($val) && count($val) == 1)
+			return $val[0];
+		return $val;
 	}
 
 	public function getData(){
