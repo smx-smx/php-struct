@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (C) 2015 Smx
+	Copyright (C) 2017 Smx <smxdev4@gmail.com>
 */
 define("int8_t"  , 'c');
 define("uint8_t" , 'C');
