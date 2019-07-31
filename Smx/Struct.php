@@ -151,11 +151,6 @@ class Struct {
 					$data = $subStruct->apply($data);
 					/* Insert it */
 					$memb->data[$i] = $subStruct;
-					//printf("Substruct insert -> %s[%d]\n", $memb->name, $i);
-					/*foreach($subStruct->members as $n => $m){
-						printf("%s => 0x%x\n", $n, $m->getValue());
-						//var_dump($m);
-					}*/
 				}
 			} else {
 				/* Read the binary data represented by the member */
@@ -194,11 +189,11 @@ class Struct {
 						self::printStruct($subStruct);
 					}
 				} else {
-					printf("%s\n", $name);
+					print($name . PHP_EOL);
 					var_dump($value);
 				}
 			} else {
-				printf("%s => 0x%x\n", $name, $value);
+				printf("{$name} => 0x%x\n", $value);
 			}
 		}
 	}
