@@ -98,6 +98,17 @@ class Struct {
 		return $sz;
 	}
 
+	public function getOffset($name){
+		$off = 0;
+		foreach($this->members as $mbname => $memb){
+			if($mbname == $name){
+				break;
+			}
+			$off += $memb->getSize();
+		}
+		return $off;
+	}
+
 	public function __clone(){
 		foreach($this->members as $name => &$member){
 			$this->members[$name] = clone($member);
