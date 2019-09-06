@@ -1,4 +1,7 @@
 <?php
+/**
+ * Copyright (C) 2019 Stefano Moioli <smxdev4@gmail.com>
+ */
 namespace Smx;
 
 class StructMember {

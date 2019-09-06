@@ -82,6 +82,7 @@ class Struct {
 			);
 		}
 	}
+
 	public function getPackString(){
 		$str = "";
 		foreach($this->members as $memb){
