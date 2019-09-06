@@ -180,14 +180,23 @@ class StructMember {
 		}
 	}
 	public static function typeValid($type){
-		return
-			$type == int8_t || $type == uint8_t ||
-			$type == int16_t || $type == uint16_t ||
-			$type == uint16_le_t || $type = uint16_be_t ||
-			$type == int32_t || $type == uint32_t ||
-			$type == uint32_be_t || $type == uint32_le_t ||
-			$type = int64_t || $type = uint64_t ||
-			$type == uint64_le_t || $type == uint64_be_t;
+		switch($type){
+			case int8_t:
+			case uint8_t:
+			case int16_t:
+			case uint16_t:
+			case uint16_le_t:
+			case uint16_be_t:
+			case int32_t:
+			case uint32_t:
+			case int64_t:
+			case uint64_t:
+			case uint64_le_t:
+			case uint64_be_t:
+				return true;
+			default:
+				return false;
+		}
 	}
 	/* Swaps endianess for a pack specifier */
 	public static function reverseType($type){
